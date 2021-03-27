@@ -1,7 +1,6 @@
 package compiler;
 
 import gen.COOLLexer;
-import gen.COOLListener;
 import gen.COOLParser;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
@@ -14,16 +13,18 @@ import java.io.IOException;
 
 public class Compiler{
     public static void main(String[] args)  throws IOException {
-        CharStream stream = CharStreams.fromFileName("./sample_code/sample1.cl");
+        CharStream stream = CharStreams.fromFileName("./sample_code/bigexample.cl");
         COOLLexer lexer = new COOLLexer(stream);
         TokenStream tokens = new CommonTokenStream(lexer);
         COOLParser coolParser = new COOLParser(tokens);
         coolParser.setBuildParseTree(true);
-
+        coolParser.removeErrorListeners();
         ParseTree parseTree = coolParser.program();
         ParseTreeWalker walker = new ParseTreeWalker();
-        COOLListener coolListener = new ProgramPrinter(coolParser);
+        ProgramPrinter coolListener = new ProgramPrinter(coolParser);
         walker.walk(coolListener, parseTree);
+        System.out.println("\n*********************\n\nInheritance Tree:\n");
+        coolListener.getInheritanceTree().printTree(coolListener.getInheritanceTree().getRoot());
 
     }
 

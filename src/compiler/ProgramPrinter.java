@@ -8,7 +8,119 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
-public class ProgramPrinter  implements COOLListener {
+import java.util.ArrayList;
+import java.util.List;
+
+class Tree<T> {
+    protected Node<T> root;
+
+    public Tree(T rootData) {
+        root = new Node<T>();
+        root.data = rootData;
+        root.children = new ArrayList<Node<T>>();
+    }
+
+    public static class Node<T> {
+        protected T data;
+        protected Node<T> parent;
+        protected List<Node<T>> children;
+    }
+
+    public Node<T> getRoot() {
+        return root;
+    }
+}
+
+class InheritanceTree {
+
+
+    private Tree<String> tree;
+    private List<Tree.Node<String>> allNodesInTree;
+
+    public InheritanceTree(String rootData) {
+        this.tree = new Tree<>(rootData);
+        allNodesInTree = new ArrayList<>();
+        allNodesInTree.add(tree.getRoot());
+    }
+
+    private Tree.Node<String> getClassNode(String className) {
+        for (Tree.Node<String> node : allNodesInTree) {
+            if (node.data.equals(className))
+                return node;
+
+        }
+        return null;
+    }
+
+    private void removeChildByClassName(Tree.Node<String> node, String childClassName) {
+        for (int i = 0; i < node.children.size(); i++) {
+            if (node.children.get(i).data.equals(childClassName)) {
+                node.children.remove(i);
+                break;
+            }
+
+        }
+    }
+
+
+    public Tree.Node<String> getRoot() {
+        return allNodesInTree.get(0);
+    }
+
+    public Tree.Node<String> addNode(String nodeData, String parent)  {
+
+        Tree.Node<String> classNode = getClassNode(nodeData);
+
+        if(parent == null){
+            parent = "Object";
+        }else if(parent.contains("null")){
+            parent = "Object";
+        }
+
+        if (classNode == null) {
+            Tree.Node<String> classNodeParent = getClassNode(parent);
+            if (classNodeParent == null) {
+                if (parent.equals("Object")) {
+                    classNodeParent = allNodesInTree.get(0);
+
+                } else {
+                    classNodeParent = addNode(parent, "Object");
+                }
+            }
+            classNode = new Tree.Node<>();
+            classNode.data = nodeData;
+            classNode.parent = classNodeParent;
+            classNode.children = new ArrayList<>();
+            classNodeParent.children.add(classNode);
+            allNodesInTree.add(classNode);
+        }
+        else if (!classNode.parent.data.equals(parent)) {
+            Tree.Node<String> classNodeParent = this.addNode(parent, "Object");
+            classNode.parent = classNodeParent;
+            classNodeParent.children.add(classNode);
+            removeChildByClassName(getRoot(), nodeData);
+
+
+        }
+
+        return classNode;
+    }
+
+    public void printTree(Tree.Node<String> node) {
+        try {
+            System.out.println("class:" + node.data + ", parent:" + node.parent.data);
+        } catch (NullPointerException e) {
+            System.out.println("class:" + node.data);
+        }
+        for (Tree.Node<String> childNode : node.children) {
+            printTree(childNode);
+        }
+
+    }
+}
+
+
+public class ProgramPrinter implements COOLListener {
     private static final int CLASS_INDENTATION = 1;
     private static final int METHOD_INDENTATION = 2;
     private static final int METHOD_PARAMETERS_INDENTATION = 3;
@@ -18,10 +130,15 @@ public class ProgramPrinter  implements COOLListener {
     String[] ruleNames;
 
     private Parser parser;
+    private InheritanceTree inheritanceTree;
+    private int blockLevel = 0;
 
-    public ProgramPrinter(Parser parser){
+    public ProgramPrinter(Parser parser) {
         this.parser = parser;
         ruleNames = parser.getRuleNames();
+        String classesRoot = "Object";
+        this.inheritanceTree = new InheritanceTree(classesRoot);
+        this.inheritanceTree.printTree(this.inheritanceTree.getRoot());
     }
 
     @Override
@@ -56,32 +173,34 @@ public class ProgramPrinter  implements COOLListener {
 
     @Override
     public void enterClassDefine(COOLParser.ClassDefineContext ctx) {
-        System.out.printf("\n%s"," ".repeat(4*CLASS_INDENTATION));
-        System.out.print("class : "+ctx.TYPEID(0)+ "/ class parents: ");
-        for (int i = 1 ; i < ctx.TYPEID().size() ; i++ )
-            System.out.printf("%s, ",ctx.TYPEID(i));
+        System.out.printf("\n%s", " ".repeat(4 * CLASS_INDENTATION));
+        System.out.print("class : " + ctx.TYPEID(0) + "/ class parents: ");
+
+        for (int i = 1; i < ctx.TYPEID().size(); i++)
+            System.out.printf("%s, ", ctx.TYPEID(i));
+        this.inheritanceTree.addNode(String.valueOf(ctx.TYPEID(0)), String.valueOf(ctx.TYPEID(1)));
         if (ctx.TYPEID().size() == 1)
-            System.out.printf("%s, ","object");
+            System.out.printf("%s, ", "object");
         System.out.printf("{");
     }
 
     @Override
     public void exitClassDefine(COOLParser.ClassDefineContext ctx) {
-        System.out.printf("\n%s"," ".repeat(4*CLASS_INDENTATION));
+        System.out.printf("\n%s", " ".repeat(4 * CLASS_INDENTATION));
         System.out.printf("}");
     }
 
     @Override
     public void enterMethod(COOLParser.MethodContext ctx) {
 
-        System.out.printf("\n%s"," ".repeat(4*METHOD_INDENTATION));
-        System.out.printf("class method: %s/return type=%s {",ctx.OBJECTID(),ctx.TYPEID());
-        if(ctx.formal().size() > 0){
-            System.out.printf("\n%s"," ".repeat(4*METHOD_PARAMETERS_INDENTATION));
+        System.out.printf("\n%s", " ".repeat(4 * METHOD_INDENTATION));
+        System.out.printf("class method: %s/return type=%s {", ctx.OBJECTID(), ctx.TYPEID());
+        if (ctx.formal().size() > 0) {
+            System.out.printf("\n%s", " ".repeat(4 * METHOD_PARAMETERS_INDENTATION));
             System.out.printf("parameters list= [");
 
-            for (int i = 0 ; i < ctx.formal().size() ; i++ )
-                System.out.printf("%s %s, ",ctx.formal(i).TYPEID().getSymbol().getText(),ctx.formal(i).OBJECTID());
+            for (int i = 0; i < ctx.formal().size(); i++)
+                System.out.printf("%s %s, ", ctx.formal(i).TYPEID().getSymbol().getText(), ctx.formal(i).OBJECTID());
             System.out.printf("]");
         }
 
@@ -90,14 +209,14 @@ public class ProgramPrinter  implements COOLListener {
 
     @Override
     public void exitMethod(COOLParser.MethodContext ctx) {
-        System.out.printf("\n%s"," ".repeat(4*METHOD_INDENTATION));
+        System.out.printf("\n%s", " ".repeat(4 * METHOD_INDENTATION));
         System.out.printf("}");
     }
 
     @Override
     public void enterProperty(COOLParser.PropertyContext ctx) {
-        System.out.printf("\n%s"," ".repeat(4*PROPERTY_INDENTATION));
-        System.out.printf("field: %s/ type=%s",ctx.OBJECTID(),ctx.TYPEID());
+        System.out.printf("\n%s", " ".repeat(4 * PROPERTY_INDENTATION));
+        System.out.printf("field: %s/ type=%s", ctx.OBJECTID(), ctx.TYPEID());
     }
 
     @Override
@@ -117,8 +236,8 @@ public class ProgramPrinter  implements COOLListener {
 
     @Override
     public void enterLetIn(COOLParser.LetInContext ctx) {
-        System.out.printf("\n%s"," ".repeat(4*METHOD_FIELD_INDENTATION));
-        System.out.printf("field: %s/ type=%s",ctx.OBJECTID(0),ctx.TYPEID(0));
+        System.out.printf("\n%s", " ".repeat(4 * METHOD_FIELD_INDENTATION));
+        System.out.printf("field: %s/ type=%s", ctx.OBJECTID(0), ctx.TYPEID(0));
     }
 
     @Override
@@ -208,12 +327,16 @@ public class ProgramPrinter  implements COOLListener {
 
     @Override
     public void enterBlock(COOLParser.BlockContext ctx) {
-
+        this.blockLevel++;
+        if(blockLevel >= 2 ){
+            System.out.printf("\n%s", " ".repeat(4 * (blockLevel+1)));
+            System.out.printf("nested statement{\n%s}", " ".repeat(4 * (blockLevel+1)));
+        }
     }
 
     @Override
     public void exitBlock(COOLParser.BlockContext ctx) {
-
+        this.blockLevel--;
     }
 
     @Override
@@ -383,11 +506,15 @@ public class ProgramPrinter  implements COOLListener {
 //            System.out.println("rule name "+ ruleNames[parserRuleContext.getRuleIndex()]
 //                    +", parent rule : "+ruleNames[parserRuleContext.getParent().getRuleIndex()]
 //                    +", rule text : "+parserRuleContext.getText());
-
     }
+
 
     @Override
     public void exitEveryRule(ParserRuleContext parserRuleContext) {
 
+    }
+
+    public InheritanceTree getInheritanceTree() {
+        return inheritanceTree;
     }
 }
