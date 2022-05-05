@@ -148,7 +148,7 @@ public class ProgramPrinter implements COOLListener {
 
     @Override
     public void exitProgram(COOLParser.ProgramContext ctx) {
-        System.out.printf("\n}");
+        System.out.printf("%n}");
     }
 
     @Override
@@ -173,7 +173,7 @@ public class ProgramPrinter implements COOLListener {
 
     @Override
     public void enterClassDefine(COOLParser.ClassDefineContext ctx) {
-        System.out.printf("\n%s", " ".repeat(4 * CLASS_INDENTATION));
+        System.out.printf("%n%s", " ".repeat(4 * CLASS_INDENTATION));
         System.out.print("class : " + ctx.TYPEID(0) + "/ class parents: ");
 
         for (int i = 1; i < ctx.TYPEID().size(); i++)
@@ -186,17 +186,17 @@ public class ProgramPrinter implements COOLListener {
 
     @Override
     public void exitClassDefine(COOLParser.ClassDefineContext ctx) {
-        System.out.printf("\n%s", " ".repeat(4 * CLASS_INDENTATION));
+        System.out.printf("%n%s", " ".repeat(4 * CLASS_INDENTATION));
         System.out.printf("}");
     }
 
     @Override
     public void enterMethod(COOLParser.MethodContext ctx) {
 
-        System.out.printf("\n%s", " ".repeat(4 * METHOD_INDENTATION));
+        System.out.printf("%n%s", " ".repeat(4 * METHOD_INDENTATION));
         System.out.printf("class method: %s/return type=%s {", ctx.OBJECTID(), ctx.TYPEID());
         if (ctx.formal().size() > 0) {
-            System.out.printf("\n%s", " ".repeat(4 * METHOD_PARAMETERS_INDENTATION));
+            System.out.printf("%n%s", " ".repeat(4 * METHOD_PARAMETERS_INDENTATION));
             System.out.printf("parameters list= [");
 
             for (int i = 0; i < ctx.formal().size(); i++)
@@ -209,13 +209,13 @@ public class ProgramPrinter implements COOLListener {
 
     @Override
     public void exitMethod(COOLParser.MethodContext ctx) {
-        System.out.printf("\n%s", " ".repeat(4 * METHOD_INDENTATION));
+        System.out.printf("%n%s", " ".repeat(4 * METHOD_INDENTATION));
         System.out.printf("}");
     }
 
     @Override
     public void enterProperty(COOLParser.PropertyContext ctx) {
-        System.out.printf("\n%s", " ".repeat(4 * PROPERTY_INDENTATION));
+        System.out.printf("%n%s", " ".repeat(4 * PROPERTY_INDENTATION));
         System.out.printf("field: %s/ type=%s", ctx.OBJECTID(), ctx.TYPEID());
     }
 
@@ -236,7 +236,7 @@ public class ProgramPrinter implements COOLListener {
 
     @Override
     public void enterLetIn(COOLParser.LetInContext ctx) {
-        System.out.printf("\n%s", " ".repeat(4 * METHOD_FIELD_INDENTATION));
+        System.out.printf("%n%s", " ".repeat(4 * METHOD_FIELD_INDENTATION));
         System.out.printf("field: %s/ type=%s", ctx.OBJECTID(0), ctx.TYPEID(0));
     }
 
@@ -329,8 +329,8 @@ public class ProgramPrinter implements COOLListener {
     public void enterBlock(COOLParser.BlockContext ctx) {
         this.blockLevel++;
         if(blockLevel >= 2 ){
-            System.out.printf("\n%s", " ".repeat(4 * (blockLevel+1)));
-            System.out.printf("nested statement{\n%s}", " ".repeat(4 * (blockLevel+1)));
+            System.out.printf("%n%s", " ".repeat(4 * (blockLevel+1)));
+            System.out.printf("nested statement{%n%s}", " ".repeat(4 * (blockLevel+1)));
         }
     }
 
@@ -341,7 +341,10 @@ public class ProgramPrinter implements COOLListener {
 
     @Override
     public void enterId(COOLParser.IdContext ctx) {
-
+//        if (ctx.getParent() != null)
+//            System.out.print("\nrule name "+ ruleNames[ctx.getRuleIndex()]
+//                    +", parent rule : "+ruleNames[ctx.getParent().getRuleIndex()]
+//                    +", rule text : "+ctx.getText());
     }
 
     @Override
@@ -502,10 +505,11 @@ public class ProgramPrinter implements COOLListener {
     @Override
     public void enterEveryRule(ParserRuleContext parserRuleContext) {
 
-//        if (parserRuleContext.getParent() != null)
-//            System.out.println("rule name "+ ruleNames[parserRuleContext.getRuleIndex()]
-//                    +", parent rule : "+ruleNames[parserRuleContext.getParent().getRuleIndex()]
-//                    +", rule text : "+parserRuleContext.getText());
+        if (parserRuleContext.getParent() != null)
+            System.out.println("rule name "+ ruleNames[parserRuleContext.getRuleIndex()]
+                    +", parent rule : "+ruleNames[parserRuleContext.getParent().getRuleIndex()]
+                    +", rule text : "+parserRuleContext.getText());
+
     }
 
 

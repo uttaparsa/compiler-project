@@ -67,5 +67,13 @@ class C inherits B {
             }
         )
     };
+    method (numm: Int) :B { -- negate
+            (let x: Int in
+                {
+                    x <- ~numm;
+                    (new B).set_var(x);
+                }
+            )
+        };
 
 };

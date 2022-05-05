@@ -63,7 +63,7 @@ class C inherits B {
         (let x: Int in
             {
                 x <- ~num;
-                (new B).set_var(x);
+                (new B).a_method_that_does_not_exist(x);
             }
         )
     };

@@ -4,6 +4,7 @@ class Main inherits IO {
     char : String;
     avar : A;
     flag : Bool <- true;
+    flag : Bool <- true;
 
     main() : Object {
         {

@@ -49,7 +49,7 @@ class B inherits A { --B is a number squared
         (let x : Int in
             {
                 x <- num * num;
-                (new C).set_var(x);
+                (new Y).set_var(x);
             }
         )
 
@@ -57,7 +57,7 @@ class B inherits A { --B is a number squared
 
 };
 
-class C inherits B {
+class C inherits Y {
 
     method (num: Int) :B { -- negate
         (let x: Int in

@@ -26,7 +26,7 @@ class A {
     var : Int <- 0;
     set_var(num : Int) : SELF_TYPE{
         {
-        var <- num;
+        var <- numomamamaksdmkadsmskan;
         self;
 
         }
