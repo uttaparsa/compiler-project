@@ -4,7 +4,7 @@ The project is a sample of working with several features of ANTLR.
 2.  class ErrorFinder: to create AST tree for COOL programming language and parse probable errors. 
 
 
-##How to run in Intellij
+## How to run in Intellij
 
 1. Install ANTLR v4 plugin from intellij extensions
 2. Download complete ANTLR jar v 4.9.1 file from this address : https://www.antlr.org/download.html
